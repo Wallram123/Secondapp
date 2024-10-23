@@ -1,0 +1,12 @@
+{% extends 'listor/mall.html' %}
+{% load crispy_forms_tags %}
+{% block innehall %}
+
+    <div class="container py-5">
+        <h1>Du är utloggad.</h1>
+    <p class="text-center">logga in igen?,
+    <a href="{% url 'loggain' %}">logga in</a>
+    </p>
+
+</div>
+{% endblock innehall %}
