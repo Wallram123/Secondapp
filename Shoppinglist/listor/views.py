@@ -5,7 +5,7 @@ from django.urls import reverse_lazy
 from django.http import HttpResponseRedirect
 from .models import List, Item
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
 from .forms import UserRegisterForm
 from django.contrib import messages
 
@@ -14,6 +14,9 @@ class AllaListor(LoginRequiredMixin,ListView):
     template_name = 'listor/hem.html'
     context_object_name = 'listor'
     ordering = ['created_date']
+
+    def get_queryset(self):
+        return List.objects.filter(list_user=self.request.user)
 
 class EnLista(LoginRequiredMixin,ListView):
     model=Item
@@ -27,6 +30,12 @@ class EnLista(LoginRequiredMixin,ListView):
         context=super().get_context_data(**kwargs)
         context['listan'] = List.objects.filter(id=self.kwargs['pk'])
         return context
+    
+    def post(self, request, *args, **kwargs):
+        obj = get_object_or_404(Item, pk=request.POST.get('item_id'))
+        obj.purchased= not obj.purchased
+        obj.save()
+        return redirect('lista-sida', pk=self.kwargs['pk'])
     
 class NyLista(LoginRequiredMixin,CreateView):
     model = List
@@ -59,7 +68,7 @@ class UppdateraLista(LoginRequiredMixin,UserPassesTestMixin,UpdateView):
         return False
 
 
-class RaderaLista(LoginRequiredMixin,UserPassesTestMixin,CreateView):
+class RaderaLista(LoginRequiredMixin,UserPassesTestMixin,DeleteView):
     model = List
     success_url = '/'
 
@@ -73,6 +82,12 @@ class NyVara(LoginRequiredMixin,CreateView):
     model = Item
     fields = ['item_name', 'amount']
 
+    def get_context_data(self, **kwargs):
+        context=super().get_context_data(**kwargs)
+        list_id= self.kwargs.get('pk')
+        context['status'] = {'status':'Ny', "list_id":list_id}
+        return context
+    
     def form_valid(self,form):
         form.instance.list=get_object_or_404(List,id=self.kwargs.get('pk'))
         return super().form_valid(form)
@@ -81,20 +96,28 @@ class NyVara(LoginRequiredMixin,CreateView):
     
 class UppdateraVara(LoginRequiredMixin,UpdateView):
     model = Item
-    fields = ['list_name','amount']
+    fields = ['item_name', 'amount']
 
     def get_context_data(self, **kwargs):
         context=super().get_context_data(**kwargs)
-        context['status'] = {'status':'Uppdatera'}
+        list_id= self.kwargs.get('pk')
+        context['status'] = {'status':'Uppdatera', "list_id":list_id}
         return context
 
 
-class RaderaVara(LoginRequiredMixin,DeleteView):
+class RaderaVara(LoginRequiredMixin, DeleteView):
     model = Item
 
-    def get_succss_url(self):
+    def get_success_url(self):
         lista = self.object.list
-        return reverse_lazy('lista-sida', kwargs={'pk':lista.id})
+        return reverse_lazy('lista-sida', kwargs={'pk': lista.id})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        list_id = self.object.list.id  
+        context['items'] = Item.objects.filter(list=list_id)
+        context['lista'] = self.object.list
+        return context
     
 class RensaVaror(LoginRequiredMixin,UserPassesTestMixin, View):
     template_name = 'listor/confirm_delete_purchased.html'
@@ -112,12 +135,21 @@ class RensaVaror(LoginRequiredMixin,UserPassesTestMixin, View):
     def get(self, request, *args, **kwargs):
         context={}
         list_pk = self.kwargs.get('pk')
-        items_to_delete = Item.objects.filter(list_pk=list_pk, purchased=True)
+        items_to_delete = Item.objects.filter(list__pk=list_pk, purchased=True)
         if not items_to_delete.exists():
             messages.warning(request, 'Det finns inga markerade varor att radera.')
             return HttpResponseRedirect(reverse_lazy('lista-sida', kwargs={'pk':list_pk}))
-        
+        context['items'] = items_to_delete
+        context['lista'] = {'listID' : list_pk}
+        return render(request, self.template_name, context)
+
     def post(self, request, *args, **kwargs):
+        list_pk = self.kwargs.get('pk')
+        items_to_delete = Item.objects.filter(list__pk=list_pk, purchased=True)  
+        items_to_delete.delete()
+        success_url = self.get_success_url()
+        return HttpResponseRedirect(success_url)
+
 
 def registrera(request):
     if request.method == 'POST':

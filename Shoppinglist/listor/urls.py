@@ -12,7 +12,7 @@ urlpatterns = [
     path('vara/<int:pk>/Uppdatera', views.UppdateraVara.as_view(), name='vara-uppdatera'),
     path('vara/<int:pk>/radera', views.RaderaVara.as_view(), name='vara-radera'), 
     path('vara/<int:pk>/ny/', views.NyVara.as_view(), name='vara-ny'),
-    path('rensa/<int:pk>/ny/', views.RensaVaror.as_view(), name='vara-rensa'),
+    path('rensa/<int:pk>/', views.RensaVaror.as_view(), name='vara-rensa'),
 
     path('registrera/', views.registrera, name='registrera'),
     path('loggain/',auth_views.LoginView.as_view(template_name='listor/loggain.html'),name='loggain'),
