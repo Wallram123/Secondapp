@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
       {
-        "src": "a2svhackathon/wsgi.py",
+        "src": "Shoppinglist/wsgi.py",
         "use": "@vercel/python",
         "config": {
           "maxLambdaSize": "15mb",
@@ -24,7 +24,7 @@
       },
       {
         "src": "/(.*)",
-        "dest": "shoppinglist/wsgi.py"
+        "dest": "Shoppinglist/wsgi.py"
       }
     ]
   }
