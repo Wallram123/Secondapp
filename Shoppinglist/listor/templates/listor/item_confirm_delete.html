@@ -12,7 +12,7 @@
       <input type="hidden" name="list_pk" value="{{ lista.listID }}">
       <div>
         <button type="submit" class="btn btn-danger">Radera</button>
-        <a href="{% url 'lista-sida' item.id %}" class="btn btn-secondary">Avbryt</a>
+        <a href="{% url 'lista-sida' object.list.id %}" class="btn btn-secondary">Avbryt</a>
       </div>
     </form>
   </div>

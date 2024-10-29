@@ -1,9 +1,11 @@
 from typing import Any
 from django.db.models.query import QuerySet
+from django.forms.models import BaseModelForm
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.http import HttpResponseRedirect
-from .models import List, Item
+from django.http import HttpResponse, HttpResponseRedirect
+from .models import List, Item, SharedList
+from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
 from .forms import UserRegisterForm
@@ -16,7 +18,8 @@ class AllaListor(LoginRequiredMixin,ListView):
     ordering = ['created_date']
 
     def get_queryset(self):
-        return List.objects.filter(list_user=self.request.user)
+        QuerySet = List.objects.filter(list_user=self.request.user)  | List.objects.filter(sharedlist__user=self.request.user)
+        return QuerySet.distinct()
 
 class EnLista(LoginRequiredMixin,ListView):
     model=Item
@@ -151,14 +154,49 @@ class RensaVaror(LoginRequiredMixin,UserPassesTestMixin, View):
         return HttpResponseRedirect(success_url)
 
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
+from django.urls import reverse_lazy
+from django.core.exceptions import ValidationError
+from .models import SharedList, List
+from django.contrib.auth.models import User
+
+class SharedListCreateView(LoginRequiredMixin, CreateView):
+    model = SharedList
+    fields = ['email']
+
+    def get_success_url(self):
+        return reverse_lazy('lista-sida', kwargs={'pk': self.kwargs['pk']})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['list_id'] = self.kwargs.get('pk')
+        return context
+
+    def form_valid(self, form):
+        email = form.cleaned_data['email']
+        try:
+            user = User.objects.get(email=email)
+            if SharedList.objects.filter(user=user, list__pk=self.kwargs['pk']).exists():
+                form.add_error('email', f'en email address kan bara vara assosierad med en lista.')
+                return self.form_invalid(form)
+
+            form.instance.user = user
+            form.instance.list = List.objects.get(pk=self.kwargs['pk'])
+            return super().form_valid(form)
+        except User.DoesNotExist:
+            form.add_error('email', f'No user found with email {email}.')
+            return self.form_invalid(form)
+
 def registrera(request):
     if request.method == 'POST':
         form=UserRegisterForm(request.POST)
         if form.is_valid():
             form.save()
             anvandarnamn = form.cleaned_data.get('username')
-            messages.success(request,f'kinto skapades för {anvandarnamn}')
+            messages.success(request,f'konto skapades för {anvandarnamn}')
             return redirect('loggain')
     else:
         form=UserRegisterForm()
     return render(request, 'listor/registrera.html', {'form':form})
+
