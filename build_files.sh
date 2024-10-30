@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-python -m pip install -r requirements.txt
+# Install packages
+python3 -m pip install -r requirements.txt || exit 1
 
-python manage.py makemigrations --noinput
-python manage.py migrate --noinput
+# Apply database migrations
+python3 manage.py makemigrations --noinput || exit 1
+python3 manage.py migrate --noinput || exit 1
 
-python manage.py collectstatic --noinput
+# Collect static files
+python3 manage.py collectstatic --noinput || exit 1
