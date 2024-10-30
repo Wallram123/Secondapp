@@ -84,15 +84,26 @@ WSGI_APPLICATION = 'Shoppinglist.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'verceldb',
-        'USER': 'default',
-        'PASSWORD': '<mypass>',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DATABASE', 'verceldb'),
+        'USER': os.environ.get('POSTGRES_USER', 'default'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'Abcd1234'),  # Ideally, keep this secure
+        'HOST': os.environ.get('POSTGRES_HOST', 'ep-jolly-shape-a47s6gxv-pooler.us-east-1.aws.neon.tech'),
+        'PORT': '5432',  # Typically PostgreSQL default port
+        'OPTIONS': {
+            'sslmode': 'require',  
+        },
     }
 }
 
+POSTGRES_URL="postgres://default:JPg4c6XWeqzR@ep-jolly-shape-a47s6gxv-pooler.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require"
+POSTGRES_PRISMA_URL="postgres://default:JPg4c6XWeqzR@ep-jolly-shape-a47s6gxv-pooler.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require&pgbouncer=true&connect_timeout=15"
+POSTGRES_URL_NO_SSL="postgres://default:JPg4c6XWeqzR@ep-jolly-shape-a47s6gxv-pooler.us-east-1.aws.neon.tech:5432/verceldb"
+POSTGRES_URL_NON_POOLING="postgres://default:JPg4c6XWeqzR@ep-jolly-shape-a47s6gxv.us-east-1.aws.neon.tech:5432/verceldb?sslmode=require"
+POSTGRES_USER="default"
+POSTGRES_HOST="ep-jolly-shape-a47s6gxv-pooler.us-east-1.aws.neon.tech"
+POSTGRES_PASSWORD="JPg4c6XWeqzR"
+POSTGRES_DATABASE="verceldb"
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
