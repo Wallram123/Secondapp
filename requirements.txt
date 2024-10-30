@@ -1,10 +1,8 @@
-package_name==version
--------------------- ------- --------------------------------------------------------
-asgiref              3.8.1
-crispy-bootstrap5    2024.10
-Django               5.1.2
-django-crispy-forms  2.3
-django-debug-toolbar 5.0.0a0 C:\dev\SecondApp\Shoppinglist\polls\src\django-debug-toolbar
-pip                  24.2
-sqlparse             0.5.1
-tzdata               2024.2
+asgiref==3.8.1
+crispy-bootstrap5==2024.10
+Django==5.1.2
+django-crispy-forms==2.3
+-e C:\dev\SecondApp\Shoppinglist\polls\src\django-debug-toolbar
+pip==24.2
+sqlparse==0.5.1
+tzdata==2024.2
